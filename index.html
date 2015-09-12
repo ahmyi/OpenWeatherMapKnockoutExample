@@ -1,0 +1,125 @@
+<!DOCTYPE>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js'></script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-min.js'></script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js'></script>
+	<style>
+		ul{
+			list-style: none;
+		}
+		li {
+			background-color: #f4faff
+		}
+		.date{
+			color:#008000
+		}
+		.side-text{
+			margin-top: -45px;
+			margin-left: 20px;
+		}
+		body >	ul > li {
+			padding-bottom:20px;
+		}
+		.image{
+			padding-bottom: 0px;
+		}
+	</style>
+</head>
+<body>
+		<span data-bind='text:"Updated On: "+u()'></span>
+		<ul data-bind='foreach:forecasts'>
+			<li class='image'><img data-bind='attr:{src:"http://openweathermap.org/img/w/"+icn+".png"}' /></li>
+			<li>
+				<ul class='side-text'>
+					<li class='date'>
+						<span data-bind='text:dt'></span>
+					</li>
+					<li>
+						<span data-bind='text:"Pagi : "+m'></span>
+					</li>
+					<li>
+						<span data-bind='text:"Petang : "+e'></span>
+					</li>
+					<li>
+						<span data-bind='text:"Malam : "+n'></span>
+					</li>
+					<li>
+						<span data-bind='text:"Minimum : "+min'></span>
+					</li>
+					<li>
+						<span data-bind='text:"Maximum : "+max'></span>
+					</li>
+				</ul>
+			</li>
+		</ul>
+
+	<script>
+	var getDateTime = function (x) {
+			var g = null; //return g
+			var m = moment(x);
+			if(!m || !m.isValid()) { return; } //if we can't find a valid or filled moment, we return.
+
+			var malam = 18, petang = 12, pagi = 4;
+			var cur = parseFloat(m.format("HH"));
+			if (cur === 0){
+				cur = 24;
+			}
+			if(cur >= pagi && cur < petang) {
+				g = 'm'; // "pagi";
+			}else if(cur >= petang && cur <= malam) {
+				g = 'e'; // "petang";
+			} else {
+				g = 'n';//"malam";
+			}
+			return g;
+	}, ViewModel = new function(){
+		var self = this;
+		self.forecasts = ko.observableArray();
+		self.u = ko.observable();
+		self.Refresh = function(){
+			$.getJSON('http://api.openweathermap.org/data/2.5/forecast?q=cyberjaya,my&mode=json&units=metric&cnt=64',function(data){
+				var viewData  = [];
+				for(var k=0;k<data.list.length;k++){
+					var v = data.list[k],s =v.dt_txt.split(" "),d = s[0],vdk = getDateTime(v.dt_txt);
+					if(typeof(viewData[d]) === 'undefined'){
+						viewData[d] = [];
+					}
+					if(typeof(viewData[d].max) === 'undefined' || typeof(viewData[d].min) === 'undefined'){
+						viewData[d].min = viewData[d].max = 0;
+					}
+					if(viewData[d].max < v.main.temp_max){
+						viewData[d].max = parseFloat(v.main.temp_max);
+					}
+					if(viewData[d].min > v.main.temp_min || viewData[d].min == 0){
+						viewData[d].min = parseFloat(v.main.temp_min);
+					}
+					viewData[d][vdk] = v.weather[0].main;
+					viewData[d]['icn'] = v.weather[0].icon;
+				}
+				self.forecasts.removeAll();
+				for (var i in viewData) {
+					var v  = viewData[i];
+					v.m = v.m || '-';
+					v.e = v.e || '-';
+					v.n = v.n || '-';
+					v.dt = moment(i).format("D MMM YYYY");;
+					v.max+=" °C";
+					v.min+=" °C";
+
+					self.forecasts.push(v);
+				}
+			});
+			var m = moment().format("DD/MM/YYYY HH:mm");
+			self.u(m);
+		};
+	};
+	ko.applyBindings(ViewModel);
+	$(document).ready(function(){
+			ViewModel.Refresh();
+			setInterval(ViewModel.Refresh,60000);//1 Minute Update
+	});
+	</script>
+</body>
+</html>
