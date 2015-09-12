@@ -53,11 +53,11 @@ $json = file_get_contents($url);
 				cur = 24;
 			}
 			if(cur >= pagi && cur < petang) {
-				g = 0; // "pagi";
+				g = 'm'; // "pagi";
 			}else if(cur >= petang && cur <= malam) {
-				g = 1; // "petang";
+				g = 'e'; // "petang";
 			} else {
-				g = 2//"malam";
+				g = 'n';//"malam";
 			}
 			return g;
 	}, ViewModel = new function(){
@@ -68,18 +68,8 @@ $json = file_get_contents($url);
 	$(document).ready(function(){
 		var viewData  = [];
 		for(var k=0;k<data.list.length;k++){
-			var v = data.list[k],s =v.dt_txt.split(" "),d = s[0],vdk = '';
-			switch (getDateTime(v.dt_txt)){
-				case 1:
-					vdk = 'e';
-				break;
-				case 2:
-					vdk = 'n';
-				break;
-				default:
-					vdk = 'm';
-				break;
-			}
+			var v = data.list[k],s =v.dt_txt.split(" "),d = s[0],vdk = getDateTime(v.dt_txt);
+
 			if(typeof(viewData[d]) === 'undefined'){
 				viewData[d] = [];
 			}
