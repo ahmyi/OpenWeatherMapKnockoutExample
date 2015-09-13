@@ -74,11 +74,11 @@
 				g = 'n';//"malam";
 			}
 			return g;
-	}, ViewModel = new function(){
-		var self = this;
-		self.forecasts = ko.observableArray();
-		self.u = ko.observable();
-		self.Refresh = function(){
+	},ViewModel = new function(){
+			var self = this;
+			self.forecasts = ko.observableArray();
+			self.u = ko.observable();
+		}, Refresh = function(){
 			$.getJSON('http://api.openweathermap.org/data/2.5/forecast?q=cyberjaya,my&mode=json&units=metric&cnt=64',function(data){
 				var viewData  = [];
 				for(var k=0;k<data.list.length;k++){
@@ -98,7 +98,7 @@
 					viewData[d][vdk] = v.weather[0].main;
 					viewData[d]['icn'] = v.weather[0].icon;
 				}
-				self.forecasts.removeAll();
+				ViewModel.forecasts.removeAll();
 				for (var i in viewData) {
 					var v  = viewData[i];
 					v.m = v.m || '-';
@@ -108,17 +108,16 @@
 					v.max+=" °C";
 					v.min+=" °C";
 
-					self.forecasts.push(v);
+					ViewModel.forecasts.push(v);
 				}
 			});
 			var m = moment().format("DD/MM/YYYY HH:mm");
-			self.u(m);
-		};
+			ViewModel.u(m);
 	};
 	ko.applyBindings(ViewModel);
 	$(document).ready(function(){
-			ViewModel.Refresh();
-			setInterval(ViewModel.Refresh,60000);//1 Minute Update
+			Refresh();
+			setInterval(Refresh,1200000);//2 hours update = 120 Minute Update
 	});
 	</script>
 </body>
